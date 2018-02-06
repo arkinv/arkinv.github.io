@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset='utf-8' />
+    <link rel='stylesheet' href='https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css'>
+    
+    <title>Голосование</title>
+</head>
+
+<body class='bg-warning'>
+
+    <div class='container'> 
+        <div id='app'></div>
+    </div>
+    
+      
+    <script crossorigin src='https://unpkg.com/react@16/umd/react.production.min.js'></script>
+    <script crossorigin src='https://unpkg.com/react-dom@16/umd/react-dom.production.min.js'></script>
+    <script src='https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/6.25.0/babel.min.js'></script>
+
+    
+    <script type='text/babel'>
+            
+        class App extends React.Component {
+            
+            constructor() {
+                super();
+                
+                this.startTimer = this.startTimer.bind(this);
+
+                this.state = {
+                
+                    timeLos: null, 
+                    sum: 0, 
+                    
+                    usTimer: 9,
+                
+                    users: [
+                        {name: 'Иванов В.В.',   votes: 0},
+                        {name: 'Петров В.И.',   votes: 0},
+                        {name: 'Михайлов М.М.', votes: 0},
+                        {name: 'Борисов Б.Б.',  votes: 0},
+                        {name: 'Макаров М.М.',  votes: 0},
+                        {name: 'Никитин Н.Н.',  votes: 0},
+                        {name: 'Павлов П.П.',   votes: 0},
+                        {name: 'Захаров З.З.',  votes: 0},
+                        {name: 'Кириллов К.К.', votes: 0},
+                        {name: 'Глебов Г.Г.',   votes: 0},
+                    ]
+                };
+            }
+            
+            startTimer(timeLos) {
+            
+                let arrVts = [];
+            
+                this.state.users.map((item, index) => {
+                    this.state.users[index].votes = 0;  
+                    arrVts[index] = 0;
+                });                  
+                
+                let sumPl = 0;
+                let sum = 0;
+                
+                let timeLeft = timeLos*100;
+
+                
+                let timer = setInterval(()=> {
+                
+                    let indR = Math.floor(Math.random() * arrVts.length);
+                    
+                    arrVts[indR] += 1;
+                    
+                    timeLeft--;
+                    
+                    if (timeLeft % 100 === 0 ) {
+                        sumPl += 1;
+                        timeLos--;
+                        let sumV = 0;
+                        
+                        this.state.users.map((item, index) => {
+                        
+                            let procR = arrVts[index]/sumPl;
+                            
+                            if (index === arrVts.length - 1 ) 
+                                procR = 100 - sumV;
+                                
+                            procR = parseFloat(procR.toFixed(1));
+
+                            this.state.users[index].votes = procR;
+                            
+                            sumV += procR;
+                            sum = 100;
+                        });   
+                    }
+                    
+                    if (timeLeft === 0 ) {
+                        clearInterval(timer)
+                    }
+                    
+                    this.setState({
+                        timeLos: timeLos,
+                        sum: sum
+                    });
+                    
+                }, 10 );
+                
+                return;
+            }
+            
+            render() {
+                
+                let users = this.state.users.sort(function(a,b){return b.votes - a.votes});
+
+                users = users.map((item, index) => {
+                    return <tr key={index}>
+                                <td><center>{index+1}</center></td>
+                                <td>{item.name}</td>
+                                <td><center>{item.votes}</center></td>
+                            </tr>
+                });
+                
+                return <div className='col-sm-5'>
+
+                    <div>
+                        <h2>Голосование</h2>
+                        <div> 
+                            <Button time={this.state.usTimer} startTimer={this.startTimer} />
+                        </div>
+                        
+                        <TimerDisplay timeLos={this.state.timeLos} />
+                    </div>
+                    <br />
+                    <h4>Итоги голосования: </h4>
+                    
+                    <PobV win={this.state.users[0].name} vt_1={this.state.users[0].votes}  vt_2={this.state.users[1].votes} timeLos={this.state.timeLos} />
+                    
+                    <br />
+                    
+                    <table className='table table-bordered'>
+                        <thead>
+                        
+                            <tr>
+                                <th className='col-sm-2'>Позиция</th>
+                                <th className='col-sm-6'>Кандидат</th>
+                                <th className='col-sm-4'>Число голосов, %</th>
+                            </tr>
+                            
+                        </thead>
+                        <tbody>
+                            
+                            {users}  
+                            
+                            <tr key={this.state.users.length}>
+                                
+                                <td><center>&sum;</center></td>
+                                <td></td>
+                                <td><center>{this.state.sum}</center></td>
+                            </tr>
+                            
+                        </tbody>
+                    </table>
+                    
+                </div>;
+            }
+        }
+       
+        class PobV extends React.Component {
+            
+            render() {
+                
+                if (this.props.timeLos === 0 )
+                    if (this.props.vt_1 === this.props.vt_2 )
+                        return <h3 className='bg-danger'>назначить перевыборы</h3>
+                    else
+                        return <h3 className='bg-success'>победитель - {this.props.win}</h3>
+                
+                return <h3 className='bg-danger'>подготовка...</h3>
+            }
+        }
+        
+        class Button extends React.Component {
+        
+            vkltimer() {
+                return this.props.startTimer(this.props.time)
+            }
+            
+            render() {
+                return (
+                    <button onClick = {this.vkltimer.bind(this)} className='btn btn-success'>
+                        Старт ({this.props.time} сек)
+                    </button>
+                )
+            }
+        }
+        
+        class TimerDisplay extends React.Component {
+            
+            render() {
+                return <h3>Показатель отсчёта: {this.props.timeLos}</h3>
+            }
+        }
+
+        ReactDOM.render(
+            <App />,
+            document.getElementById('app')
+        )
+          
+    </script>
+</body>
+</html>
